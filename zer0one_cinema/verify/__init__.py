@@ -11,6 +11,7 @@ Public surface:
 from __future__ import annotations
 
 from .report import GateResult, VerifyReport, VerifyStatus
+from .sequence import verify_frames
 
 __all__ = [
     "GateResult",
@@ -18,11 +19,3 @@ __all__ = [
     "VerifyStatus",
     "verify_frames",
 ]
-
-
-def verify_frames(*args: object, **kwargs: object) -> VerifyReport:
-    """Top-level entry — see verify.sequence for the real implementation.
-
-    Filled in during Phase P3.
-    """
-    raise NotImplementedError("phase P3")

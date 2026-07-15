@@ -109,6 +109,7 @@ ignore = ["E501", "PLR0913"]
 ]
 "zer0one_cinema/verify/sequence.py" = [
   "PLC0415",  # cv2 import deferred (optical-flow gate requires opencv but sequence.py may load without)
+  "PLR2004",  # LRU cache size (2) is inline-documented
 ]
 
 [tool.mypy]
