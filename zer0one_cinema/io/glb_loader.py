@@ -43,7 +43,7 @@ class GlbImportError(RuntimeError):
 def _require_bpy() -> Any:
     """Import bpy at call-time; raise a clear error if unavailable."""
     try:
-        import bpy  # type: ignore[import-not-found]
+        import bpy
     except ImportError as e:
         raise GlbImportError(
             "bpy is not available in this Python. Run this command via "

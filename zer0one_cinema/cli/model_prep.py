@@ -99,7 +99,7 @@ def _run_pipeline(
 
     # 8. Save .blend
     click.echo(f"[7/7] Saving {output_blend}...")
-    import bpy  # type: ignore[import-not-found]
+    import bpy
 
     bpy.ops.wm.save_as_mainfile(filepath=str(Path(output_blend).absolute()))
 

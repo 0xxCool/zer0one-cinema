@@ -103,6 +103,11 @@ ignore = ["E501", "PLR0913"]
 ]
 "zer0one_cinema/preflight/bpy_adapters.py" = [
   "PLC0415",  # bpy + bpy_extras + mathutils imports deferred behind Blender-only surface
+  "BLE001",   # broad except in render fallback path is intentional (Blender crashes surface here)
+]
+"zer0one_cinema/preflight/loop.py" = [
+  "PLC0415",  # cv2 import deferred (loop runs without cv2 for pure-python callers)
+  "BLE001",   # broad except around adapter.render_eevee_preview: the loop must convert any Blender fault into RENDER_FAILED state
 ]
 "zer0one_cinema/verify/gates.py" = [
   "PLR2004",  # gate thresholds (0.7 luminance, 0.5 mask etc.) are the domain semantics
@@ -123,6 +128,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["cv2", "cv2.*", "skimage.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["bpy", "bpy.*", "bpy_extras", "bpy_extras.*", "mathutils", "mathutils.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
