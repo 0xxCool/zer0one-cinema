@@ -421,12 +421,7 @@ def classify_by_texture(mat: MaterialLike, sampler: TextureSampler) -> MaterialC
         if r_avg > 0.5 and r_avg > 2 * g_avg and r_avg > 2 * b_avg:
             return "taillight_red"
 
-    if (
-        mr is not None
-        and rg is not None
-        and float(mr.mean()) > 0.8
-        and float(rg.mean()) < 0.15
-    ):
+    if mr is not None and rg is not None and float(mr.mean()) > 0.8 and float(rg.mean()) < 0.15:
         return "chrome"
 
     return None

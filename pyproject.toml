@@ -74,6 +74,10 @@ ignore = ["E501", "PLR0913"]
   "PLR0911",  # 3-pass classifier legitimately has many early-return branches
   "PLR2004",  # texture-signal thresholds are domain-specific, documented in research doc
 ]
+"zer0one_cinema/model_prep/body_group.py" = [
+  "PLR0912",  # multi-stage filter (wheel-filter → env-filter → aggregate) reads clearer inline
+  "PLR2004",  # wheelbase-count threshold (2) is documented in-code
+]
 
 [tool.mypy]
 python_version = "3.11"
