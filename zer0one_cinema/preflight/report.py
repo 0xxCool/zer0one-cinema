@@ -6,11 +6,11 @@ byte-identical JSON reports (compared via sha256 in the E2E suite).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 
-class PreflightState(str, Enum):
+class PreflightState(StrEnum):
     """Terminal states of the preflight loop."""
 
     PASS = "PASS"
@@ -77,7 +77,7 @@ class PreflightReport:
     preview_frame_paths: tuple[str, ...]  # for contact-sheet review
 
 
-class PreflightFailed(RuntimeError):
+class PreflightError(RuntimeError):
     """Raised by the loop when it terminates without PASS.
 
     The caller (CLI) catches this to translate into a non-zero exit code

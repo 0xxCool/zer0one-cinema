@@ -69,7 +69,7 @@ select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "C4", "PL"]
 ignore = ["E501", "PLR0913"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["PLR2004", "B017"]  # assertions may use magic values + blind exceptions
+"tests/**/*.py" = ["PLR2004", "B017", "PLC0415"]  # assertions may use magic values + blind exceptions + local imports
 "zer0one_cinema/model_prep/wheel_detect.py" = [
   "PLC0415",  # local sklearn import is intentional (lazy)
   "PLR2004",  # inline algorithm constants (min verts, half-of-2, etc.) — magic-value rule is noise here

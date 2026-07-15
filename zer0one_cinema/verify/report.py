@@ -6,10 +6,10 @@ and Markdown (contact-sheet-style report for human review).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 
-class VerifyStatus(str, Enum):
+class VerifyStatus(StrEnum):
     """Gate outcome tri-state — used per gate and rolled up per frame."""
 
     PASS = "PASS"

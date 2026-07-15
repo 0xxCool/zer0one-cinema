@@ -14,7 +14,7 @@ from __future__ import annotations
 from .loop import run_preflight
 from .report import (
     CheckResult,
-    PreflightFailed,
+    PreflightError,
     PreflightReport,
     PreflightState,
     SceneMutation,
@@ -22,7 +22,7 @@ from .report import (
 
 __all__ = [
     "CheckResult",
-    "PreflightFailed",
+    "PreflightError",
     "PreflightReport",
     "PreflightState",
     "SceneMutation",
