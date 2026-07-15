@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg
+.venv/
+venv/
+env/
+
+# Blender
+*.blend1
+*.blend2
+*.blend@
+
+# Test fixtures (large binaries — stored via LFS or external)
+tests/glb_fixtures/*.glb
+tests/glb_fixtures/*.gltf
+tests/presets_golden/*.png
+tests/presets_golden/*.jpg
+tests/presets_golden/*.exr
+
+# Docs build
+site/
+
+# Local dev
+.env
+.env.local
+*.log
+tmp/
+scratchpad/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
