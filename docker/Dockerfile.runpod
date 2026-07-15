@@ -1,0 +1,16 @@
+# Extends the base worker image with sshd + entry script so RunPod can
+# provision SSH access on port 22. Non-RunPod usage should continue to use
+# the plain :v0.1.1 tag.
+FROM ghcr.io/0xxcool/zer0one-cinema-worker:v0.1.1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        openssh-server \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /var/run/sshd \
+    && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config \
+    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+
+COPY docker/runpod_entry.sh /usr/local/bin/runpod-entry
+RUN chmod +x /usr/local/bin/runpod-entry
+
+CMD ["/usr/local/bin/runpod-entry"]
