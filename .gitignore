@@ -22,6 +22,10 @@ env/
 *.blend2
 *.blend@
 
+# Test outputs — regenerable via `zocinema model-prep`, never commit
+test-outputs/
+!test-outputs/.gitkeep
+
 # Test fixtures (large binaries — stored via LFS or external)
 tests/glb_fixtures/*.glb
 tests/glb_fixtures/*.gltf
