@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zer0one-cinema"
-version = "0.1.0"
+version = "0.1.1"
 description = "Deterministic cinema-grade rendering automation for Blender: GLB in, movie out."
 readme = "README.md"
 license = { text = "MIT" }
@@ -50,8 +50,8 @@ Homepage = "https://zer0onelab.com/cinema"
 Repository = "https://github.com/0xxCool/zer0one-cinema"
 Issues = "https://github.com/0xxCool/zer0one-cinema/issues"
 
-[tool.setuptools]
-packages = ["zer0one_cinema"]
+[tool.setuptools.packages.find]
+include = ["zer0one_cinema*"]
 
 [tool.setuptools.package-data]
 zer0one_cinema = ["presets/**/*.yaml"]
