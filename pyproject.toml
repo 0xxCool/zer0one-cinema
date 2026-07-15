@@ -78,6 +78,12 @@ ignore = ["E501", "PLR0913"]
   "PLR0912",  # multi-stage filter (wheel-filter → env-filter → aggregate) reads clearer inline
   "PLR2004",  # wheelbase-count threshold (2) is documented in-code
 ]
+"zer0one_cinema/io/glb_loader.py" = [
+  "PLC0415",  # deferred bpy import is intentional (keep core pure-python-importable)
+]
+"zer0one_cinema/cli/model_prep.py" = [
+  "PLC0415",  # deferred bpy + adapter imports are intentional (CLI must import without bpy)
+]
 
 [tool.mypy]
 python_version = "3.11"
