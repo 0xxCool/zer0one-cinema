@@ -70,6 +70,10 @@ ignore = ["E501", "PLR0913"]
   "PLC0415",  # local sklearn import is intentional (lazy)
   "PLR2004",  # inline algorithm constants (min verts, half-of-2, etc.) — magic-value rule is noise here
 ]
+"zer0one_cinema/model_prep/material_sanitize.py" = [
+  "PLR0911",  # 3-pass classifier legitimately has many early-return branches
+  "PLR2004",  # texture-signal thresholds are domain-specific, documented in research doc
+]
 
 [tool.mypy]
 python_version = "3.11"
