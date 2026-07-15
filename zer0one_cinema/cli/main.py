@@ -3,8 +3,10 @@
 Usage:
     zocinema --version
     zocinema model-prep <glb> --output <blend> [--report <json>] [--seed 0]
+    zocinema preflight <blend> --camera <cam-name> [--max-iters 3]     (v0.2)
+    zocinema verify <frames-dir> [--gates ...] [--strict]              (v0.2)
 
-More commands (preflight, render, verify) arrive in v0.2+.
+More commands (render) arrive in v0.3+.
 """
 
 from __future__ import annotations
@@ -13,6 +15,8 @@ import click
 
 from .. import __version__
 from . import model_prep as _model_prep
+from . import preflight as _preflight
+from . import verify as _verify
 
 
 @click.group()
@@ -27,6 +31,8 @@ def main() -> None:
 
 # Register sub-commands
 main.add_command(_model_prep.model_prep_command, name="model-prep")
+main.add_command(_preflight.preflight_command, name="preflight")
+main.add_command(_verify.verify_command, name="verify")
 
 
 if __name__ == "__main__":

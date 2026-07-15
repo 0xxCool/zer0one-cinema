@@ -41,6 +41,10 @@ docs = [
   "mkdocs-material>=9.5",
   "mkdocstrings[python]>=0.25",
 ]
+preflight = [
+  "opencv-contrib-python>=4.10",
+  "scikit-image>=0.24",
+]
 
 [project.scripts]
 zocinema = "zer0one_cinema.cli:main"
@@ -84,6 +88,28 @@ ignore = ["E501", "PLR0913"]
 "zer0one_cinema/cli/model_prep.py" = [
   "PLC0415",  # deferred bpy + adapter imports are intentional (CLI must import without bpy)
 ]
+"zer0one_cinema/cli/preflight.py" = [
+  "PLC0415",  # deferred bpy + adapter imports are intentional (CLI must import without bpy)
+]
+"zer0one_cinema/cli/verify.py" = [
+  "PLC0415",  # deferred cv2/skimage import — verify runs without those if only numpy gates requested
+]
+"zer0one_cinema/preflight/frame_analyzer.py" = [
+  "PLC0415",  # cv2 import is deferred so `import preflight` doesn't hard-fail without extras
+  "PLR2004",  # threshold constants (NDC margin, sharpness cutoff etc.) are algorithm-inline
+]
+"zer0one_cinema/preflight/fix_rules.py" = [
+  "PLR2004",  # geometric constants (ground scale factor 1.5, DoF fstop clamp 4.0) are algorithm-inline
+]
+"zer0one_cinema/preflight/bpy_adapters.py" = [
+  "PLC0415",  # bpy + bpy_extras + mathutils imports deferred behind Blender-only surface
+]
+"zer0one_cinema/verify/gates.py" = [
+  "PLR2004",  # gate thresholds (0.7 luminance, 0.5 mask etc.) are the domain semantics
+]
+"zer0one_cinema/verify/sequence.py" = [
+  "PLC0415",  # cv2 import deferred (optical-flow gate requires opencv but sequence.py may load without)
+]
 
 [tool.mypy]
 python_version = "3.11"
@@ -92,6 +118,10 @@ warn_return_any = true
 
 [[tool.mypy.overrides]]
 module = ["sklearn.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["cv2", "cv2.*", "skimage.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
