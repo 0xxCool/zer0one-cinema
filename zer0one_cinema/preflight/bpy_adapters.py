@@ -117,7 +117,7 @@ class BlenderAdapter:
                 all_corners.append([world.x, world.y, world.z])
         return np.asarray(all_corners, dtype=np.float64)
 
-    def render_eevee_preview(self, output_path: str) -> RenderOutcome:
+    def render_eevee_preview(self, output_path: str, camera_name: str | None = None) -> RenderOutcome:
         import bpy
 
         scene = self._get_scene()
@@ -125,7 +125,18 @@ class BlenderAdapter:
         prev_samples = getattr(scene.eevee, "taa_render_samples", None)
         prev_pct = scene.render.resolution_percentage
         prev_filepath = scene.render.filepath
+        prev_camera = scene.camera
         try:
+            # If the .blend has no active render camera, or a specific one was
+            # requested, promote the named camera to active before rendering.
+            if camera_name is not None:
+                cam_obj = self._get_object(camera_name)
+                scene.camera = cam_obj
+            elif scene.camera is None:
+                # Fallback: first CAMERA object in the scene
+                cams = [o for o in bpy.data.objects if o.type == "CAMERA"]
+                if cams:
+                    scene.camera = cams[0]
             scene.render.engine = "BLENDER_EEVEE_NEXT"
             scene.eevee.taa_render_samples = self.eevee_samples
             scene.render.resolution_percentage = self.resolution_percentage
@@ -139,6 +150,7 @@ class BlenderAdapter:
                 scene.eevee.taa_render_samples = prev_samples
             scene.render.resolution_percentage = prev_pct
             scene.render.filepath = prev_filepath
+            scene.camera = prev_camera
 
         img = Image.open(output_path).convert("RGB")
         rgb = np.asarray(img, dtype=np.uint8)

@@ -58,7 +58,12 @@ def run_preflight(
     for i in range(max_iters):
         preview_out = str(output_path / f"iter_{i:02d}.png")
         try:
-            outcome = adapter.render_eevee_preview(preview_out)
+            # Adapters may or may not accept a camera_name arg; BlenderAdapter
+            # uses it to promote the target camera to scene.camera.
+            try:
+                outcome = adapter.render_eevee_preview(preview_out, camera_name=camera_name)  # type: ignore[call-arg]
+            except TypeError:
+                outcome = adapter.render_eevee_preview(preview_out)
         except Exception as exc:  # noqa: BLE001 - user-facing preflight domain, want to log any render fault
             return _build_report(
                 state=PreflightState.RENDER_FAILED,
@@ -113,13 +118,29 @@ def run_preflight(
     )
 
 
-def _pick_worst_fail(checks: list[CheckResult]) -> CheckResult:
-    """Return the failing check with the largest magnitude.
+CHECK_PRIORITY = {
+    # Lower number = fix first. Structural failures (car not visible)
+    # dominate — no point tuning exposure on an empty frame. Within a
+    # priority tier ties break by magnitude.
+    "car_fully_in_frame": 0,
+    "ground_infinite": 1,
+    "composition_rule_of_thirds": 2,
+    "sharpness_on_car_roi": 3,
+    "exposure_clipping": 4,
+}
 
-    Ties are broken by checks[i] order (first defined wins) — deterministic.
+
+def _pick_worst_fail(checks: list[CheckResult]) -> CheckResult:
+    """Return the failing check the loop should address next.
+
+    Priority-first (structural failures before cosmetic), magnitude as
+    tie-breaker within the same tier. Deterministic across runs.
     """
     fails = [c for c in checks if not c.passed]
-    return max(fails, key=lambda c: c.magnitude)
+    return min(
+        fails,
+        key=lambda c: (CHECK_PRIORITY.get(c.name, 99), -c.magnitude),
+    )
 
 
 def _build_report(
