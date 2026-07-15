@@ -1,0 +1,81 @@
+name: Build Worker Image
+
+# Builds and pushes the zer0one-cinema Blender worker image to GHCR.
+# Triggers:
+#   - Push of a v*.*.* tag → publishes ghcr.io/0xxcool/zer0one-cinema-worker:<tag>
+#     (plus :latest for stable versions).
+#   - Manual dispatch → build only (no push) for pre-release smoke-tests.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build only, do not push (default true)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: ${{ github.event_name == 'push' || !inputs.dry_run }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version metadata
+        id: meta
+        run: |
+          PYPROJECT_VERSION=$(grep -m1 '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          # For tag pushes: prefer the git tag. For workflow_dispatch: use pyproject.toml.
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            IMAGE_VERSION="${TAG_VERSION}"
+            if [[ "${TAG_VERSION}" != "${PYPROJECT_VERSION}" ]]; then
+              echo "::warning::git tag ${TAG_VERSION} != pyproject version ${PYPROJECT_VERSION} — using git tag for image"
+            fi
+          else
+            IMAGE_VERSION="${PYPROJECT_VERSION}"
+          fi
+          echo "image_version=${IMAGE_VERSION}" >> $GITHUB_OUTPUT
+          echo "pypi_version=${PYPROJECT_VERSION}" >> $GITHUB_OUTPUT
+          echo "Image will be tagged: v${IMAGE_VERSION}"
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: ${{ github.event_name == 'push' || !inputs.dry_run }}
+          build-args: |
+            ZOCINEMA_VERSION=${{ steps.meta.outputs.pypi_version }}
+            BLENDER_VERSION=4.2.11
+            BLENDER_MAJOR=4.2
+          tags: |
+            ghcr.io/0xxcool/zer0one-cinema-worker:v${{ steps.meta.outputs.image_version }}
+            ${{ github.ref == 'refs/tags/v0.1.1' && 'ghcr.io/0xxcool/zer0one-cinema-worker:latest' || '' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test (built image runs zocinema --version)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          docker build -q --load \
+            --build-arg ZOCINEMA_VERSION=${{ steps.meta.outputs.pypi_version }} \
+            -f Dockerfile -t local-test:${{ steps.meta.outputs.image_version }} .
+          docker run --rm local-test:${{ steps.meta.outputs.image_version }} zocinema --version
