@@ -168,9 +168,10 @@ def _project_to_frame(points: np.ndarray, frame: VehicleFrame) -> np.ndarray:
 _ASPECT_SHORT_MIN, _ASPECT_SHORT_MAX = 0.15, 0.60  # short-dim / long-dim
 _ASPECT_DISC_MIN, _ASPECT_DISC_MAX = 0.80, 1.05  # mid-dim / long-dim (round disc)
 # wheel-diameter (longest bbox dim) / vehicle-length. Small for cars (~0.15),
-# larger for motorcycles (~0.30). Kept generous to survive candidate-filtering;
-# stage 5 rectangle+symmetry is the real gate.
-_DIAM_FRAC_MIN, _DIAM_FRAC_MAX = 0.03, 0.35
+# larger for motorcycles (~0.30), even larger for monster-trucks (~0.45).
+# Kept generous to survive candidate-filtering; stage 5 rectangle+symmetry is
+# the real gate. Real vehicles rarely exceed 0.50 outside of stunt props.
+_DIAM_FRAC_MIN, _DIAM_FRAC_MAX = 0.03, 0.50
 _Y_FRAC_MAX = 0.45  # wheel must be in bottom 45% of vehicle bbox
 
 
@@ -491,7 +492,14 @@ def detect_wheels(
     # ── Stage 2: Candidate filter ──
     candidates = find_candidates(meshes, frame)
     if not candidates:
-        raise WheelDetectionError("no wheel-shape candidates found (Stage 2)")
+        mesh_count = len(list(meshes))
+        raise WheelDetectionError(
+            f"no wheel-shape candidates found in {mesh_count} meshes. "
+            f"Common cause: the GLB stores the whole vehicle as one or few "
+            f"merged meshes instead of separate wheel objects. v0.1 requires "
+            f"wheel-per-object structure; connected-components sub-mesh "
+            f"splitting is a v0.2 feature (see docs/research/wheel-detection-methods.md §3)."
+        )
 
     # Auto-detect k
     if k is None:

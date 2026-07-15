@@ -473,6 +473,26 @@ def test_detect_wheels_error_on_empty():
         detect_wheels([])
 
 
+def test_detect_wheels_monster_truck_ratio_regression():
+    """Regression: monster-truck wheels have diameter ≈ 44% of vehicle length.
+
+    The initial `_DIAM_FRAC_MAX = 0.35` threshold rejected them. Real-world test
+    on kenney_monster_truck.glb (v0.1.5, A5) showed this needs to be at least
+    0.44 to survive. We now use 0.50 with margin.
+    """
+    # Truck body: 0.44 × 0.61 × 0.64 = length 0.875m
+    # Wheels: 0.19 × 0.38 × 0.38 = diameter 0.38m
+    # diam_frac = 0.38 / 0.875 = 0.434 — must pass!
+    meshes = _make_synthetic_car(
+        wheelbase=0.6,        # short vehicle
+        track_width=0.4,
+        wheel_radius=0.19,    # large wheels (compensated: 2r = 0.38)
+        wheel_width=0.19,
+    )
+    result = detect_wheels(meshes)
+    assert len(result.wheels) == 4
+
+
 def test_detect_wheels_error_when_no_candidates():
     """A body-only scene should fail candidate stage."""
     body_only = [_make_box_mesh("body", (0.0, 0.0, 0.7), (4.5, 1.8, 1.4))]
