@@ -19,14 +19,44 @@ Every operation logs a `TraceEntry` for rollback and audit.
 
 from .bbox_utils import AABB, MeshLike, scene_world_aabb, world_bbox_corners
 from .ground_anchor import GroundAnchorReport, apply_z_shift, compute_z_shift, ground_anchor
+from .wheel_detect import (
+    NamedMeshLike,
+    VehicleFrame,
+    WheelCandidate,
+    WheelDetectionError,
+    WheelDetectionResult,
+    WheelGroup,
+    aggregate_wheel_meshes,
+    cluster_candidates,
+    compute_vehicle_frame,
+    detect_wheels,
+    find_candidates,
+    label_wheels_flfr_rlrr,
+    validate_rectangle,
+    validate_symmetry,
+)
 
 __all__ = [
     "AABB",
     "GroundAnchorReport",
     "MeshLike",
+    "NamedMeshLike",
+    "VehicleFrame",
+    "WheelCandidate",
+    "WheelDetectionError",
+    "WheelDetectionResult",
+    "WheelGroup",
+    "aggregate_wheel_meshes",
     "apply_z_shift",
+    "cluster_candidates",
+    "compute_vehicle_frame",
     "compute_z_shift",
+    "detect_wheels",
+    "find_candidates",
     "ground_anchor",
+    "label_wheels_flfr_rlrr",
     "scene_world_aabb",
+    "validate_rectangle",
+    "validate_symmetry",
     "world_bbox_corners",
 ]
