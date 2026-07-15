@@ -335,6 +335,28 @@ def test_validate_symmetry_true_for_mirrored_pairs():
     assert validate_symmetry(pts) is True
 
 
+def test_validate_rectangle_rs6_real_world_tolerance():
+    """Regression: real automotive GLBs (RS6 raw) have ~11% short-edge variance.
+
+    Root cause: complex wheel assemblies (rim + tire + brake disc + caliper) mean
+    cluster-center per wheel-side drifts a few cm from the geometric ideal. A single
+    false-positive cylinder in Cluster 0 shifts its mean by 30cm → short-edges
+    become 1.525 vs 1.719 (11.3% diff). tol=0.10 rejects; production default
+    tol=0.20 accepts. Actual RS6 case with clusters slightly perturbed inward.
+    """
+    pts = np.array(
+        [
+            [+1.460, -0.687, 0.0],  # FR-cluster mean (skewed inward by false-positive)
+            [+1.725, +0.814, 0.0],  # FL-cluster mean
+            [-1.184, -0.884, 0.0],  # RR-cluster mean
+            [-1.217, +0.835, 0.0],  # RL-cluster mean
+        ]
+    )
+    assert validate_rectangle(pts, tol_rel=0.10) is False
+    assert validate_rectangle(pts, tol_rel=0.20) is True
+    assert validate_symmetry(pts, tol_rel=0.20) is True
+
+
 def test_validate_symmetry_false_when_only_one_side():
     """All wheels on the same side of the mid-plane → not symmetric."""
     pts = np.array(

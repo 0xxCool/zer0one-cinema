@@ -308,7 +308,7 @@ def cluster_candidates(
 # ==========================================================================
 
 
-def validate_rectangle(wheel_centers_local: np.ndarray, tol_rel: float = 0.10) -> bool:
+def validate_rectangle(wheel_centers_local: np.ndarray, tol_rel: float = 0.20) -> bool:
     """Verify 4 wheel centers form a rectangle in the (forward, right) plane.
 
     A rectangle has 6 pairwise distances that form 3 pairs: 2 shortest edges
@@ -334,7 +334,7 @@ def validate_rectangle(wheel_centers_local: np.ndarray, tol_rel: float = 0.10) -
     return True
 
 
-def validate_symmetry(wheel_centers_local: np.ndarray, tol_rel: float = 0.10) -> bool:
+def validate_symmetry(wheel_centers_local: np.ndarray, tol_rel: float = 0.20) -> bool:
     """Verify wheel centers are mirror-symmetric across the vehicle's mid-plane.
 
     Mid-plane = right-axis = 0 in vehicle frame. Every wheel at +right must
