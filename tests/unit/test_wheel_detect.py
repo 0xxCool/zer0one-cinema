@@ -13,6 +13,7 @@ import numpy as np
 import pytest
 
 from zer0one_cinema.model_prep.wheel_detect import (
+    WheelCandidate,
     WheelDetectionError,
     _canonicalize_eigenvector,
     _sort_candidates_canonical,
@@ -20,6 +21,7 @@ from zer0one_cinema.model_prep.wheel_detect import (
     cluster_candidates,
     compute_vehicle_frame,
     detect_wheels,
+    filter_by_symmetry,
     find_candidates,
     label_wheels_flfr_rlrr,
     validate_rectangle,
@@ -520,3 +522,57 @@ def test_detect_wheels_error_when_no_candidates():
     body_only = [_make_box_mesh("body", (0.0, 0.0, 0.7), (4.5, 1.8, 1.4))]
     with pytest.raises(WheelDetectionError, match="no wheel-shape candidates"):
         detect_wheels(body_only)
+
+
+# ── filter_by_symmetry (v0.2 L-104 quality-fix) ────────────────────────────
+
+
+def _candidate(name: str, x: float, y: float, z: float) -> WheelCandidate:
+    """Bare WheelCandidate — real mesh unused by filter_by_symmetry."""
+    return WheelCandidate(
+        mesh=None,  # type: ignore[arg-type]
+        center_world=(x, y, z),
+        center_local=(x, y, z),
+        dims_local_sorted=(0.2, 0.4, 0.4),
+    )
+
+
+def test_symmetry_filter_keeps_all_when_fewer_than_four() -> None:
+    """< 4 candidates → filter is a no-op (not enough to reason about symmetry)."""
+    cands = [_candidate(f"c{i}", 1.0, 0.5, 0.3) for i in range(3)]
+    assert filter_by_symmetry(cands) == cands
+
+
+def test_symmetry_filter_keeps_all_four_wheels_of_a_car() -> None:
+    """4 wheels at (±1.5, ±0.8, 0.35) — every candidate has a mirror partner."""
+    cands = [
+        _candidate("FL", 1.5, -0.8, 0.35),
+        _candidate("FR", 1.5, 0.8, 0.35),
+        _candidate("RL", -1.5, -0.8, 0.35),
+        _candidate("RR", -1.5, 0.8, 0.35),
+    ]
+    kept = filter_by_symmetry(cands)
+    assert {c.center_local for c in kept} == {c.center_local for c in cands}
+
+
+def test_symmetry_filter_drops_single_side_false_positive() -> None:
+    """4 wheels + 1 interior part in the middle — filter drops the middle piece."""
+    cands = [
+        _candidate("FL", 1.5, -0.8, 0.35),
+        _candidate("FR", 1.5, 0.8, 0.35),
+        _candidate("RL", -1.5, -0.8, 0.35),
+        _candidate("RR", -1.5, 0.8, 0.35),
+        # False positive: sits near midplane (y ≈ 0), no mirror partner
+        _candidate("interior_cylinder", 0.4, 0.02, -0.1),
+    ]
+    kept = filter_by_symmetry(cands)
+    # The interior part is unique — nothing mirrors it → dropped.
+    kept_centers = [c.center_local for c in kept]
+    assert (0.4, 0.02, -0.1) not in kept_centers
+    assert len(kept) == 4
+
+
+def test_symmetry_filter_noop_when_all_candidates_on_midplane() -> None:
+    """y_span=0 → no meaningful mirror-axis → filter returns input unchanged."""
+    cands = [_candidate(f"c{i}", i, 0.0, 0.3) for i in range(5)]
+    assert filter_by_symmetry(cands) == cands

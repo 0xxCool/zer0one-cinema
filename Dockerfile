@@ -10,14 +10,14 @@
 # (3.11 in Blender 4.2). No system Python venv needed — Blender loads its own
 # interpreter, and the package + its deps sit alongside bpy.
 #
-# Build:   docker build -f Dockerfile -t ghcr.io/0xxcool/zer0one-cinema-worker:v0.1.1 .
-# Run:     docker run --rm -v /host/path:/workspace ghcr.io/0xxcool/zer0one-cinema-worker:v0.1.1 \
+# Build:   docker build -f Dockerfile -t ghcr.io/0xxcool/zer0one-cinema-worker:v0.2.0 .
+# Run:     docker run --rm -v /host/path:/workspace ghcr.io/0xxcool/zer0one-cinema-worker:v0.2.0 \
 #              zocinema model-prep car.glb --output car_prepped.blend --report report.json
 FROM ubuntu:22.04
 
 ARG BLENDER_VERSION=4.2.11
 ARG BLENDER_MAJOR=4.2
-ARG ZOCINEMA_VERSION=0.1.1
+ARG ZOCINEMA_VERSION=0.2.0
 
 ENV DEBIAN_FRONTEND=noninteractive \
     BLENDER_VERSION=${BLENDER_VERSION} \
@@ -49,7 +49,7 @@ RUN wget -qO /tmp/blender.tar.xz \
 RUN BLENDER_PY=$(ls /opt/blender/${BLENDER_MAJOR}/python/bin/python3.*) \
     && $BLENDER_PY -m ensurepip \
     && $BLENDER_PY -m pip install --no-cache-dir --upgrade pip \
-    && $BLENDER_PY -m pip install --no-cache-dir "zer0one-cinema==${ZOCINEMA_VERSION}"
+    && $BLENDER_PY -m pip install --no-cache-dir "zer0one-cinema[preflight]==${ZOCINEMA_VERSION}"
 
 COPY docker/blender_bootstrap.py ${ZOCINEMA_HOME}/bootstrap.py
 

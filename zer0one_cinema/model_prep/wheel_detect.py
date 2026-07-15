@@ -272,6 +272,55 @@ def _sort_candidates_canonical(candidates: Sequence[WheelCandidate]) -> list[Whe
     )
 
 
+def filter_by_symmetry(
+    candidates: Sequence[WheelCandidate],
+    tol_rel: float = 0.15,
+) -> list[WheelCandidate]:
+    """Drop candidates without a mirror-symmetric partner across the vehicle's
+    left-right midplane (local y-axis = 0).
+
+    Rationale (L-104): real cars have every wheel-shape piece mirror-doubled
+    (both front rims, both brake discs). A single-side false-positive — an
+    interior part that happens to be roughly cylindrical — will not have a
+    counterpart on the opposite side and can be filtered out before K-Means,
+    preventing it from skewing a cluster centroid.
+
+    Args:
+        candidates: wheel-shape candidates from `find_candidates`.
+        tol_rel: mirror-partner tolerance as fraction of the total y-span.
+                 0.15 means "partner must land within 15% of the vehicle's
+                 track-width in x and z, and near the mirrored y".
+
+    Returns:
+        Subset of `candidates` where every entry has a mirror partner. If the
+        input has < 4 candidates or the y-span is degenerate, returns the
+        input unchanged (no meaningful filtering possible).
+    """
+    if len(candidates) < 4:
+        return list(candidates)
+    ys = [c.center_local[1] for c in candidates]
+    y_span = max(ys) - min(ys)
+    if y_span < 1e-6:
+        return list(candidates)
+    tol = tol_rel * y_span
+
+    kept: list[WheelCandidate] = []
+    for i, c in enumerate(candidates):
+        mirrored_y = -c.center_local[1]
+        expected_x = c.center_local[0]
+        expected_z = c.center_local[2]
+        has_partner = any(
+            abs(other.center_local[0] - expected_x) < tol
+            and abs(other.center_local[1] - mirrored_y) < tol
+            and abs(other.center_local[2] - expected_z) < tol
+            for j, other in enumerate(candidates)
+            if j != i
+        )
+        if has_partner:
+            kept.append(c)
+    return kept
+
+
 def cluster_candidates(
     candidates: Sequence[WheelCandidate],
     k: int,
@@ -308,7 +357,7 @@ def cluster_candidates(
 # ==========================================================================
 
 
-def validate_rectangle(wheel_centers_local: np.ndarray, tol_rel: float = 0.20) -> bool:
+def validate_rectangle(wheel_centers_local: np.ndarray, tol_rel: float = 0.15) -> bool:
     """Verify 4 wheel centers form a rectangle in the (forward, right) plane.
 
     A rectangle has 6 pairwise distances that form 3 pairs: 2 shortest edges
@@ -334,7 +383,7 @@ def validate_rectangle(wheel_centers_local: np.ndarray, tol_rel: float = 0.20) -
     return True
 
 
-def validate_symmetry(wheel_centers_local: np.ndarray, tol_rel: float = 0.20) -> bool:
+def validate_symmetry(wheel_centers_local: np.ndarray, tol_rel: float = 0.15) -> bool:
     """Verify wheel centers are mirror-symmetric across the vehicle's mid-plane.
 
     Mid-plane = right-axis = 0 in vehicle frame. Every wheel at +right must
@@ -500,6 +549,9 @@ def detect_wheels(
             f"wheel-per-object structure; connected-components sub-mesh "
             f"splitting is a v0.2 feature (see docs/research/wheel-detection-methods.md §3)."
         )
+
+    # ── Stage 2.5: Mirror-symmetry filter (v0.2, from L-104) ──
+    candidates = filter_by_symmetry(candidates)
 
     # Auto-detect k
     if k is None:
