@@ -63,6 +63,9 @@ target-version = "py311"
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "C4", "PL"]
 ignore = ["E501", "PLR0913"]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["PLR2004", "B017"]  # assertions may use magic values + blind exceptions
+
 [tool.mypy]
 python_version = "3.11"
 strict = true

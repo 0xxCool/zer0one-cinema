@@ -1,4 +1,5 @@
 """Smoke test: package importable and exposes __version__."""
+
 import zer0one_cinema
 
 
