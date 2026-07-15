@@ -49,3 +49,6 @@ scratchpad/
 *.swp
 *.swo
 .DS_Store
+
+# Dogfood outputs — large local renders (.blend, GLBs, frames, bundles, downloaded pod outputs)
+dogfood/
