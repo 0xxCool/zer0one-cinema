@@ -93,6 +93,49 @@ PROFILE_OVERRIDES: Final[dict[str, dict[str, float]]] = {
         "auto_center_offset_min": 0.0,
         "negative_space_min": 0.60,
     },
+
+    # Generic web-hero video — the "any brand" preset. Cinema-Web landing
+    # reels, product-launch heroes, portfolio pieces: anything that ships
+    # as 16:9 web mp4/webm with unknown-in-advance brand palette. The
+    # trade-off vs standard is broader tolerances everywhere; the
+    # trade-off vs night_neon is a fully open hue-range (any palette,
+    # any composition) instead of Cyan/Magenta night-look assumptions.
+    "web_hero": {
+        # A_lighting: web hero-shots span everything from soft-key studio
+        # to high-contrast stylised. Widen both ends of the ratio.
+        "key_fill_ratio_min": 2.0,
+        "key_fill_ratio_max": 35.0,
+        "shadow_density_min": 0.05,
+        # B_material: no subject-centric assumptions — could be typography,
+        # a product cutout, an abstract render. Do not require bright body
+        # pixels or wet-asphalt hints.
+        "body_bright_pixel_frac_min": 0.0,
+        "wet_asphalt_peak_count_min": 0,
+        # D_composition: hero pieces can center the subject (wordmark reveal),
+        # off-set it (product photo), or fill the frame (immersive). Do not
+        # penalise any of those.
+        "auto_center_offset_min": 0.0,
+        "negative_space_min": 0.10,
+        "auto_fill_max": 0.90,
+        # E_atmosphere: some heroes ship on pitch-black voids (typography),
+        # some on rich HDRI. Lower the bg-detail floor.
+        "bg_detail_min": 0.10,
+        # F_grading: 16:9 web ratio, brand palette unrestricted (any hue),
+        # vignettes are common design choices, not defects.
+        "corner_center_ratio_max": 5.0,
+        "aspect_ratio_target": 1.7778,
+        "aspect_ratio_tolerance": 0.03,
+        "shadow_hue_min_deg": 0.0,
+        "shadow_hue_max_deg": 360.0,
+        "highlight_hue_min_deg": 0.0,
+        "highlight_hue_max_deg": 360.0,
+        # C_motion: web heroes often use orbit / scroll-driven camera moves
+        # where per-pixel flow directions diverge — matches night_neon.
+        "motion_blur_direction_consistency_min": 0.05,
+        # R_regression: SSIM-based golden-frame check is tighter for web
+        # renders because minor encoder drift is often the actual concern.
+        "reference_delta_max": 0.15,
+    },
 }
 
 

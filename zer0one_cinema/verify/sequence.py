@@ -17,6 +17,7 @@ import numpy as np
 
 from .. import __version__
 from .gates import GATES, _luminance, load_frame_rgb
+from .reference import gate_reference
 from .report import FrameReport, GateResult, VerifyReport, VerifyStatus
 from .thresholds import THRESHOLDS as TH
 from .thresholds import apply_profile
@@ -182,6 +183,7 @@ def verify_frames(
     resolved = _resolve_gates(gates)
     run_motion = "motion" in resolved
     single_frame_gates = [g for g in resolved if g in GATES]
+    reference_path = Path(reference_dir) if reference_dir else None
 
     # Cache loaded frames so motion gate can pair-index without re-loading
     loaded: dict[str, np.ndarray] = {}
@@ -212,6 +214,12 @@ def verify_frames(
                     prev_rgb = load_frame_rgb(prev_path)
                     loaded[str(prev_path)] = prev_rgb
                 gate_results.append(gate_motion(prev_rgb, rgb))
+
+        # Reference regression gate — filename-based golden-frame match.
+        # SKIP if no --ref was given or the golden file for this frame
+        # doesn't exist; PASS/WARN/FAIL from SSIM+PSNR otherwise.
+        if reference_path is not None:
+            gate_results.append(gate_reference(rgb, reference_path / fpath.name))
 
         if strict:
             gate_results = [_demote_warn_to_fail(g) for g in gate_results]
