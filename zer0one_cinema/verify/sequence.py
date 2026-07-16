@@ -19,6 +19,7 @@ from .. import __version__
 from .gates import GATES, _luminance, load_frame_rgb
 from .report import FrameReport, GateResult, VerifyReport, VerifyStatus
 from .thresholds import THRESHOLDS as TH
+from .thresholds import apply_profile
 
 MOTION_MAG_PIXEL_MIN = 1.0  # ignore pixels with < 1 px displacement
 MOTION_ANGLE_TOL_DEG = 15.0  # ± tolerance around median flow angle
@@ -144,6 +145,7 @@ def verify_frames(
     gates: Iterable[str] | None = None,
     reference_dir: str | Path | None = None,
     strict: bool = False,
+    profile: str = "standard",
 ) -> VerifyReport:
     """Run selected CGVF gates on every frame in `frames_dir`.
 
@@ -153,11 +155,19 @@ def verify_frames(
                grading} — None → all 6.
         reference_dir: currently unused (Golden-Frame regression is v0.3+).
         strict: if True, WARN status is demoted to FAIL in the roll-up.
+        profile: named threshold set (e.g. "standard", "night_neon"). Applied
+               globally for the duration of this call. Unknown names raise
+               KeyError.
 
     Returns:
         VerifyReport with per-frame gate results + overall status + per-gate
         PASS-rate. Callers translate `.overall` into an exit code.
     """
+    # Route thresholds through the profile before any gate runs. Gates read
+    # `THRESHOLDS` at call-time, so this switch propagates to A/B/D/E/F and
+    # the motion gate in one place.
+    apply_profile(profile)
+
     frames_path = Path(frames_dir)
     frame_files = _discover_frames(frames_path)
     if not frame_files:

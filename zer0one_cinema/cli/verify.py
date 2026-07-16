@@ -14,6 +14,7 @@ import click
 
 from ..verify import verify_frames
 from ..verify.report import VerifyReport, VerifyStatus
+from ..verify.thresholds import available_profiles
 
 _STATUS_EMOJI = {
     VerifyStatus.PASS: "PASS",
@@ -92,12 +93,25 @@ def _report_to_markdown(report: VerifyReport) -> str:
     default=None,
     help="Write JSON report to this path; Markdown side-by-side gets .md extension.",
 )
+@click.option(
+    "--profile",
+    "profile",
+    type=click.Choice(available_profiles(), case_sensitive=False),
+    default="standard",
+    show_default=True,
+    help=(
+        "Threshold profile. 'standard' = daylight studio (v0.2.0 default). "
+        "'night_neon' = NfS-style cyan+magenta night hero-reveal (widens A/B/C/F "
+        "thresholds so night-look renders don't hit false FAILs)."
+    ),
+)
 def verify_command(
     frames_dir: str,
     gates: str | None,
     strict: bool,
     reference_dir: str | None,
     report_path: str | None,
+    profile: str,
 ) -> None:
     """Run 6-gate CGVF check on a folder of rendered frames."""
     gate_list = [g.strip() for g in gates.split(",")] if gates else None
@@ -107,11 +121,12 @@ def verify_command(
         gates=gate_list,
         reference_dir=reference_dir,
         strict=strict,
+        profile=profile,
     )
 
     total = len(report.frames)
     click.echo(
-        f"CGVF: {total} frames  ·  overall={report.overall.value}"
+        f"CGVF: {total} frames  ·  profile={profile}  ·  overall={report.overall.value}"
         + ("  ·  strict on" if strict else "")
     )
     for gate, rate in sorted(report.gate_pass_rate.items()):
